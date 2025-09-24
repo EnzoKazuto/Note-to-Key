@@ -1,1 +1,4 @@
-requirements
+sounddevice
+numpy
+librosa
+keyboard
