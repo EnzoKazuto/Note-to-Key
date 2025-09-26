@@ -7,11 +7,13 @@ import time
 # ======= CONFIGURAÇÃO =======
 SAMPLERATE = 48000
 BLOCKSIZE = 1024          # ~21 ms (menor bloco = menor delay, mas mais CPU)
+DURATION = BLOCKSIZE / SAMPLERATE
 DEBUG = True
 VOLUME_THRESHOLD = 0.01
+HOLD_TIME = 0.1   # segundos extras para manter 'c' pressionada
 
 note_to_key = {
-    "B5": ["l", "x"], # "NOTA": "TECLA"
+    "B5": ["l", "x"],
     "C#6": ["o", "x"],
     "A#5": "a",
     "D#5": "s",
@@ -20,7 +22,7 @@ note_to_key = {
     "D5": "m",
     "F5": "z",
     "E5": "x",
-    "G#5": "c",
+    "G#5": "c",   # tecla normal
     "G5": ["z", "n"],
     "A5": ["z", "m"],
     "F6": "v",
@@ -34,6 +36,9 @@ last_note = None
 last_keys = []
 stable_note = None
 stable_count = 0
+last_gsharp_time = 0   # armazena a última vez que G#5 foi tocada
+
+sustain_c = False  # controla se o sustain do "c" está ligado
 
 
 # ======= FUNÇÃO DE NOTA =======
@@ -54,20 +59,29 @@ def freq_to_note(freq):
 
 # ======= CALLBACK DE ÁUDIO =======
 def audio_callback(indata, frames, time_info, status):
-    global currently_pressed, last_note, last_keys, stable_note, stable_count
+    global currently_pressed, last_note, last_keys, stable_note, stable_count, last_gsharp_time, sustain_c
 
     samples = indata[:, 0]
 
     # ===== volume mínimo =====
     volume = np.mean(np.abs(samples))
     if volume < VOLUME_THRESHOLD:
-        # libera todas as teclas imediatamente
-        to_release = set(currently_pressed)
+        now = time.time()
+
+        # libera teclas
+        to_release = set()
+        for key in currently_pressed:
+            if key == "c" and sustain_c:
+                if now - last_gsharp_time > HOLD_TIME:
+                    to_release.add(key)
+            else:
+                to_release.add(key)
+
         for key in to_release:
             keyboard.release(key)
             currently_pressed.remove(key)
             if DEBUG and to_release:
-                print(f" Soltando: {', '.join(to_release)}")
+                print(f"⏳ Soltando: {', '.join(to_release)}")
 
         last_keys = []
         last_note = None
@@ -105,16 +119,17 @@ def audio_callback(indata, frames, time_info, status):
             keys = [keys]
 
         if note != last_note:
-            # soltar teclas antigas que não pertencem à nova nota
             for old_key in last_keys:
                 if old_key in currently_pressed and old_key not in keys:
-                    keyboard.release(old_key)
-                    currently_pressed.remove(old_key)
-                    if DEBUG:
-                        print(f"🔚 Soltando: {old_key}")
+                    if not (old_key == "c" and sustain_c):
+                        keyboard.release(old_key)
+                        currently_pressed.remove(old_key)
+                        if DEBUG:
+                            print(f"🔚 Soltando: {old_key}")
 
-        # pressionar teclas da nota atual
         for key in keys:
+            if key == "c":
+                last_gsharp_time = time.time()
             if key in repeat_keys:
                 keyboard.press(key)
                 keyboard.release(key)
@@ -136,7 +151,15 @@ def audio_callback(indata, frames, time_info, status):
             print(f"⚠️ Nota não mapeada: {note} ({pitch:.1f} Hz)")
 
         if currently_pressed:
-            to_release = set(currently_pressed)
+            now = time.time()
+            to_release = set()
+            for key in currently_pressed:
+                if key == "c" and sustain_c:
+                    if now - last_gsharp_time > HOLD_TIME:
+                        to_release.add(key)
+                else:
+                    to_release.add(key)
+
             for key in to_release:
                 keyboard.release(key)
                 currently_pressed.remove(key)
@@ -149,10 +172,15 @@ def audio_callback(indata, frames, time_info, status):
 
 # ======= LOOP =======
 print("🎵 Iniciando detecção em tempo real. Ctrl+C para sair.")
+print("🔀 Aperte [ESPAÇO] para ativar/desativar o sustain do 'c'.")
 
 try:
     with sd.InputStream(channels=1, samplerate=SAMPLERATE, blocksize=BLOCKSIZE, callback=audio_callback):
         while True:
+            if keyboard.is_pressed("space"):
+                sustain_c = not sustain_c
+                print(f"🎹 Sustain do 'c': {'ATIVADO' if sustain_c else 'DESATIVADO'}")
+                time.sleep(0.3)  # debounce
             time.sleep(0.01)
 except KeyboardInterrupt:
     for key in currently_pressed:
