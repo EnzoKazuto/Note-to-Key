@@ -50,12 +50,13 @@ python main.py
 
 ### Dica
 
-Você pode alterar as notas e teclas dentro do código:
+Você pode alterar e adicionar notas e teclas dentro do código:
 
 Abra o arquivo main.py com o Bloco de Notas ou VS Code.
 
 Procure o dicionário note_to_key.
 
 Edite conforme quiser (por exemplo, mude "C5": "n" para outra tecla).
+
 
 
