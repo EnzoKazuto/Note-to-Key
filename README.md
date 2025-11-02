@@ -32,7 +32,7 @@ Antes de usar o programa, altere as teclas de setas do jogo para
 Abra o **Prompt de Comando (CMD)** ou **terminal do VS Code** e execute:
 
 ```bash
-git clone https://github.com/seu-usuario/Note-to-Key.git
+git clone https://github.com/EnzoKazuto/Note-to-Key.git
 cd Note-to-Key
 ```
 
@@ -57,6 +57,7 @@ Abra o arquivo main.py com o Bloco de Notas ou VS Code.
 Procure o dicionário note_to_key.
 
 Edite conforme quiser (por exemplo, mude "C5": "n" para outra tecla).
+
 
 
 
