@@ -22,14 +22,14 @@ note_to_key = {
     "D5": "m",
     "F5": "z",
     "E5": "x",
-    "G#5": "c",   # tecla normal
+    "G#5": "c",
     "G5": ["z", "n"],
     "A5": ["z", "m"],
     "F6": "v",
     "E6": ["o", "f"]
 }
 
-repeat_keys = {"o", "l", "x"}
+repeat_keys = {"o", "l", "x"} #faz as teclas serem pressionadas varias vezes
 
 currently_pressed = set()
 last_note = None
@@ -110,7 +110,7 @@ def audio_callback(indata, frames, time_info, status):
 
     # ===== mostrar sempre a nota =====
     if DEBUG:
-        print(f"🎶 Nota detectada: {note} ({pitch:.1f} Hz)")
+        print(f" Nota detectada: {note} ({pitch:.1f} Hz)")
 
     # ===== mapeamento tecla =====
     if note and note in note_to_key:
@@ -125,7 +125,7 @@ def audio_callback(indata, frames, time_info, status):
                         keyboard.release(old_key)
                         currently_pressed.remove(old_key)
                         if DEBUG:
-                            print(f"🔚 Soltando: {old_key}")
+                            print(f" Soltando: {old_key}")
 
         for key in keys:
             if key == "c":
@@ -134,13 +134,13 @@ def audio_callback(indata, frames, time_info, status):
                 keyboard.press(key)
                 keyboard.release(key)
                 if DEBUG:
-                    print(f"🔁 Repetindo: {key}")
+                    print(f" Repetindo: {key}")
             else:
                 if key not in currently_pressed:
                     keyboard.press(key)
                     currently_pressed.add(key)
                     if DEBUG:
-                        print(f"🎵 Pressionando: {key}")
+                        print(f" Pressionando: {key}")
 
         last_note = note
         last_keys = keys
@@ -148,7 +148,7 @@ def audio_callback(indata, frames, time_info, status):
     else:
         # nota não mapeada
         if DEBUG:
-            print(f"⚠️ Nota não mapeada: {note} ({pitch:.1f} Hz)")
+            print(f" Nota não mapeada: {note} ({pitch:.1f} Hz)")
 
         if currently_pressed:
             now = time.time()
@@ -164,25 +164,25 @@ def audio_callback(indata, frames, time_info, status):
                 keyboard.release(key)
                 currently_pressed.remove(key)
                 if DEBUG:
-                    print(f"⚠️ Soltando (não mapeada): {key}")
+                    print(f" Soltando (não mapeada): {key}")
 
         last_keys = []
         last_note = None
 
 
 # ======= LOOP =======
-print("🎵 Iniciando detecção em tempo real. Ctrl+C para sair.")
-print("🔀 Aperte [ESPAÇO] para ativar/desativar o sustain do 'c'.")
+print(" Iniciando detecção em tempo real. Ctrl+C para sair.")
+print(" Aperte [ESPAÇO] para ativar/desativar o sustain do 'c'.")
 
 try:
     with sd.InputStream(channels=1, samplerate=SAMPLERATE, blocksize=BLOCKSIZE, callback=audio_callback):
         while True:
             if keyboard.is_pressed("space"):
                 sustain_c = not sustain_c
-                print(f"🎹 Sustain do 'c': {'ATIVADO' if sustain_c else 'DESATIVADO'}")
+                print(f" Sustain do 'c': {'ATIVADO' if sustain_c else 'DESATIVADO'}") #faz o botao C segurar para pular enquanto corre
                 time.sleep(0.3)  # debounce
             time.sleep(0.01)
 except KeyboardInterrupt:
     for key in currently_pressed:
         keyboard.release(key)
-    print("\n🛑 Programa encerrado.")
+    print("\n Programa encerrado.")
