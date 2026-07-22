@@ -18,7 +18,7 @@ Ideal para criar automações, tocar jogos com instrumentos ou controlar ações
 
 ### Alterar as teclas do jogo
 
-Antes de usar o programa, altere as teclas de setas do jogo para
+Para o jogo Silksong, antes de usar o programa, altere as teclas de setas do jogo para
 
 | Direção | Tecla |
 |----------|--------|
